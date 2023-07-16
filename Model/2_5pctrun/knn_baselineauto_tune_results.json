@@ -1,0 +1,1 @@
+{"bsl_options": {"method": "als", "n_epochs": 22, "reg_i": 48.35241195444295, "reg_u": 12.044236277774175}, "k": 438, "min_k": 41, "sim_options": {"name": "pearson_baseline", "user_based": false, "min_support": 64, "shrinkage": 230}, "algo": "knn_baseline", "rmse": 0.2952774453430375}

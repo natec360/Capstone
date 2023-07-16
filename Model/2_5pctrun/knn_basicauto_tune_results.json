@@ -1,0 +1,1 @@
+{"k": 256, "min_k": 23, "sim_options": {"name": "msd", "user_based": false, "min_support": 76}, "algo": "knn_basic", "rmse": 0.30779075023081826}
