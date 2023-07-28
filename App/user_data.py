@@ -100,7 +100,10 @@ def get_user_data():
         
         data.append([date, num_value, time_value])
     
-    df = pd.DataFrame(data, columns=['Date', 'Numeric Value', 'Time Value'])
+    df = pd.DataFrame(data, columns=['Date', 'Distance', 'Duration'])
+    df['user_id'] = user_id
+    #adjust duration format
+    df['Duration'] = df['Duration'].apply(lambda x: x.strftime('%H:%M:%S'))
     
     # Extract the month from the first row of the DataFrame
     month = None
