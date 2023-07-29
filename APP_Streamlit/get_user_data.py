@@ -6,7 +6,7 @@ import pandas as pd
 
 def generate_random_user_id():
     """Generate a random user ID."""
-    return f"user_{random.randint(1000, 9999)}"
+    return f"user_{random.randint(10000, 99999)}"
 
 
 def get_user_data():
@@ -24,7 +24,7 @@ def get_user_data():
         st.header("New User Information")
         
         age = st.number_input("What is your age?", min_value=18, step=1)
-        gender = st.selectbox("What is your gender?", ('Male', 'Female'))
+        gender = st.selectbox("What is your gender?", ('Male', 'Female','Other'))
         distance_last_week = st.number_input("Distance run last week (in kilometers):", min_value=0.0, step=0.1)
         pace_last_week = st.time_input("Average pace last week:", value=datetime.strptime('00:00:00', '%H:%M:%S'))
         num_days_run_last_week = st.slider("Number of days run in last week:", 0, 7)
@@ -83,8 +83,4 @@ def get_user_data():
     if new_user:
         return new_user, age, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
     else:
-        # Add a "Next" button for returning users if all fields are entered
-        if st.button("Next"):
-            return new_user, user_id, num_days_run_last_week, days_since_last_run, df
-        else:
-            return None, None, None, None, None, None, None, None, None
+        return new_user, None, None, None, None, None, None, df, user_id

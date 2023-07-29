@@ -1,6 +1,5 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime
+from welcome_page import show_welcome_page
 from get_user_data import get_user_data
 from run_plan_page import get_run_plan
 
@@ -9,13 +8,38 @@ st.set_page_config(page_title="Runner Training Plan App", page_icon="🏃‍♂�
 
 # Create a sidebar navigation menu
 st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Choose a page", ["User Input", "Run Plan"])
+page = st.sidebar.selectbox("Choose a page", ["Welcome", "User Input", "Run Plan"])
 
 # Initialize the show_run_plan_page session state variable to False
 if "show_run_plan_page" not in st.session_state:
     st.session_state.show_run_plan_page = False
 
-if page == "User Input":
+# Create a state variable to track the current page
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "Welcome"
+
+# Create a state variable to track the reset action
+if "reset" not in st.session_state:
+    st.session_state.reset = False
+
+# Handle page transitions
+if st.session_state.current_page == "Welcome":
+    show_welcome_page()
+
+    # Add a "Start" button on the welcome page with a unique key
+    if st.button("Click here to begin", key="start_button"):
+        # Set the current page to "User Input" when the button is clicked
+        st.session_state.current_page = "User Input"
+
+elif st.session_state.current_page == "User Input":
+    # Check if reset button is clicked
+    if st.session_state.reset:
+        # Clear user input data
+        st.session_state.clear()
+        st.session_state.reset = False
+        st.session_state.current_page = "Welcome"
+        st.experimental_rerun()
+
     user_data = get_user_data()
 
     if user_data is not None:
@@ -38,34 +62,29 @@ if page == "User Input":
                 st.error("Please fill in all new user information fields.")
             else:
                 # Add a "Next" button for new users
-                if st.button("Next"):
+                if st.button("Next (New User)", key="next_new_user"):
                     # Set show_run_plan_page to True when the button is clicked
                     st.session_state.show_run_plan_page = True
-                    # Trigger a rerun of the script to automatically switch to the "Run Plan" page
-                    st.experimental_rerun()
+                    # Set the current page to "Run Plan" when the button is clicked
+                    st.session_state.current_page = "Run Plan"
+
         else:
-            # Display returning user data
-            st.write("Returning User Data:")
-            st.write(f"User ID: {user_id}")
-            st.write(f"Number of Days Run in Last Week: {user_info[0]}")
-            st.write(f"Days Since Last Run: {user_info[1]}")
-            st.write("Run Data:")
-            st.write(df)
+            # Add a "Please Proceed Here" button for returning users if all fields are entered
+            if st.button("Please Proceed Here"):
+                # Set show_run_plan_page to True when the button is clicked
+                st.session_state.show_run_plan_page = True
+                # Set the current page to "Run Plan" when the button is clicked
+                st.session_state.current_page = "Run Plan"
 
-            # Validate inputs for returning users
-            if None in user_info:
-                st.warning("Please enter all required information for returning users.")
-            else:
-                # Check if all required information is present for returning users
-                if user_id is not None and user_info[0] is not None and user_info[1] is not None:
-                    # Add a "Next" button for returning users
-                    if st.button("Next"):
-                        # Set show_run_plan_page to True when the button is clicked
-                        st.session_state.show_run_plan_page = True
-                        # Trigger a rerun of the script to automatically switch to the "Run Plan" page
-                        st.experimental_rerun()
+elif st.session_state.current_page == "Run Plan" and st.session_state.show_run_plan_page:
+    # Check if reset button is clicked
+    if st.session_state.reset:
+        # Clear user input data
+        st.session_state.clear()
+        st.session_state.reset = False
+        st.session_state.current_page = "Welcome"
+        st.experimental_rerun()
 
-if page == "Run Plan" and st.session_state.show_run_plan_page:
     st.title("Runner Training Plan - Run Input Form")
     km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
 
@@ -76,3 +95,8 @@ if page == "Run Plan" and st.session_state.show_run_plan_page:
     st.write(f"Medium intensity runs: {medium_intensity_runs}")
     st.write(f"High intensity runs: {high_intensity_runs}")
     st.write(f"Sunday long run: {'Yes' if sunday_long_run else 'No'}")
+
+# Add a "Reset" button to the sidebar
+if st.sidebar.button("Reset"):
+    st.session_state.reset = True
+    st.experimental_rerun()
