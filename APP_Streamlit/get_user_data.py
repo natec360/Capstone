@@ -81,6 +81,6 @@ def get_user_data():
         return None, None, None, None, None, None, None, None, None
 
     if new_user:
-        return new_user, age, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
+        return True, age, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
     else:
-        return new_user, None, None, None, None, None, None, df, user_id
+        return False, None, None, None, None, None, None, df, user_id

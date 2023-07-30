@@ -2,6 +2,7 @@ import streamlit as st
 from welcome_page import show_welcome_page
 from get_user_data import get_user_data
 from run_plan_page import get_run_plan
+from database_utils import update_database, database_for_recommender
 
 # Set the Streamlit page configuration
 st.set_page_config(page_title="Runner Training Plan App", page_icon="🏃‍♂️")
@@ -95,6 +96,14 @@ elif st.session_state.current_page == "Run Plan" and st.session_state.show_run_p
     st.write(f"Medium intensity runs: {medium_intensity_runs}")
     st.write(f"High intensity runs: {high_intensity_runs}")
     st.write(f"Sunday long run: {'Yes' if sunday_long_run else 'No'}")
+
+    # Update the user database and get the recommendations
+    if st.button("Update User Data"):
+        user_db_data = update_database(new_user, user_info[1], user_info[0], month, km_this_week, days_to_run, user_id, df)
+        filtered_data = database_for_recommender(raw_df, user_db_data, user_info[1], user_info[0], month, days_to_run, km_this_week)
+        st.write("Updated user database and retrieved recommendations.")
+        st.write("Recommendations:")
+        st.write(filtered_data)
 
 # Add a "Reset" button to the sidebar
 if st.sidebar.button("Reset"):
