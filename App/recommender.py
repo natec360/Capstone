@@ -51,6 +51,38 @@ def generate_run_ratings(filtered_df,user_id, weekly_target, number_of_days, lon
         
     return pd.DataFrame(results_dict).sort_values(by=['run_rating'], ascending = False)
 
+def adjust_pace_based_on_intensity(pace, intensity):
+    if intensity == 'high':
+        return pace * 0.95  # Decrease pace by 5% for high-intensity run
+    elif intensity == 'medium':
+        return pace * 0.98  # Decrease pace by 2% for medium-intensity run
+    else:
+        return pace  # No adjustment for other runs
+
+# Function to generate the intensity for each run based on user input
+def generate_intensity_schedule(num_medium_runs, num_high_runs, num_runs):
+    run_types = ['low'] * (num_runs - num_medium_runs - num_high_runs)
+    run_types.extend(['medium'] * num_medium_runs)
+    run_types.extend(['high'] * num_high_runs)
+    return run_types
+
+def convert_float_minutes_to_time(float_minutes):
+    # Convert float in minutes to time in 'HH:MM:SS' format
+
+    hours = int(float_minutes // 60)
+    minutes = int(float_minutes % 60)
+    seconds = int((float_minutes % 1) * 60)
+
+    time_formatted = f"{hours:02}:{minutes:02}:{seconds:02}"
+    return time_formatted
+
+def calculate_injury_likelihood(days_since_last_run, average_distance, average_pace):
+    # Custom logic to calculate the injury likelihood score
+    # You can use any formula or algorithm based on the input variables
+    # For this example, let's use a simple formula as an illustration
+    injury_score = days_since_last_run * 0.1 + average_distance * 0.5 + average_pace * 0.3
+    injury_likelihood = min(100, max(0, injury_score))  # Cap the score between 0 and 100
+    return injury_likelihood
 
 def return_run_schedule(run_recommendations, number_of_days, weekly_target, medium_intensity_runs, high_intensity_runs, long_run):
     
@@ -61,8 +93,6 @@ def return_run_schedule(run_recommendations, number_of_days, weekly_target, medi
     2) Selects set whose combination is somewhat close to target with highest ratings
     3) Increases/decreases individual runs to match target
     4) Sorts results with longest run at the end, 2nd longest in the middle to provide well spaced runs
-    
-    NOT IMPLEMENTED
     ***
     5) Sets pace
     6) Adjusts for medium/high intenstiy run requests
@@ -155,15 +185,44 @@ def return_run_schedule(run_recommendations, number_of_days, weekly_target, medi
     
     
     ## 5 ##
-    #set pace
-    df_runs['pace'] = '00:06:30'
+    # Set pace
+    # Average Pace for everyone
+    average_pace = 9
+    
+    # Average Distance for everyone
+    average_distance = 7
+    
+    # Distance multiplier (from intensity score); 0.1 is to dampen results
+    df_runs['pace_adjusted'] = average_pace * (1 + ( 0.1 * (df_runs['run_distance'] / average_distance)))
     
     ## 6 ##
     #adjust for medium intensity
-    
-    ## 7 ##
     #adjust for high intensity
     
+    df_runs['intensity'] = generate_intensity_schedule(medium_intensity_runs, high_intensity_runs, number_of_days)
+    
+    # Sort the DataFrame by intensity in descending order
+    df_runs = df_runs.sort_values('intensity', ascending=False)
+
+    # Set a floor and ceiling on pace
+    floor_pace = 5  # 00:05:00 in seconds
+    ceiling_pace = 15  # 00:15:00 in seconds
+    df_runs['pace_adjusted'] = df_runs['pace_adjusted'].apply(lambda x: min(max(x, floor_pace), ceiling_pace))
+
+    # Convert the smoothed pace to the 'HH:MM:SS' format
+    df_runs['pace'] = df_runs['pace_adjusted'].apply(convert_float_minutes_to_time)
+
+    # Adjust pace based on intensity
+    df_runs['pace_adjusted'] = df_runs.apply(lambda row: adjust_pace_based_on_intensity(row['pace_adjusted'], row['intensity']), axis=1)
+
+    # Convert the adjusted pace to the 'HH:MM:SS' format
+    df_runs['pace'] = df_runs['pace_adjusted'].apply(convert_float_minutes_to_time)
+    
+    ## 7 ##
+    
+    # If long run multiply distance by 1.5
+    if long_run == 'yes':
+        df_runs.loc[df_runs.index[-1], 'run_distance'] *= 1.5
     
     ## 8 ##
     #return schedule 
