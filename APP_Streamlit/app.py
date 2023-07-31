@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from welcome_page import show_welcome_page
 from get_user_data import get_user_data
 from run_plan_page import get_run_plan
@@ -7,6 +8,12 @@ from recommender import generate_run_ratings, return_run_schedule
 
 #from main import main  # Import the main function from main.py that will print the run_schedule
 
+#initialize objects
+new_user, gender, age_group, month, km_this_week, days_to_run, user_id = None, None, None, None, None, None, None
+days_to_run, km_this_week = None, None
+medium_intensity_runs, high_intensity_runs, sunday_long_run = None, None, None
+new_user_df = pd.DataFrame()
+user_db_data = pd.DataFrame()
 
 # Set the Streamlit page configuration
 st.set_page_config(page_title="Runner Training Plan App", page_icon="🏃‍♂️")
@@ -45,25 +52,25 @@ elif st.session_state.current_page == "User Input":
         st.session_state.current_page = "Welcome"
         st.experimental_rerun()
 
-    user_data = get_user_data()
-
-    if user_data is not None:
-        new_user, *user_info, df, user_id = user_data
+    new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id = get_user_data()
+    
+    if new_user_df is not None:
+        #new_user, *user_info, df, user_id = user_data
 
         if new_user:
             # Display new user data
-            st.write("New User Data:")
-            st.write(f"Age: {user_info[0]}")
-            st.write(f"Gender: {user_info[1]}")
-            st.write(f"Distance Run Last Week (in km): {user_info[2]}")
-            st.write(f"Average Pace Last Week: {user_info[3].strftime('%H:%M:%S')}")
-            st.write(f"Number of Days Run in Last Week: {user_info[4]}")
-            st.write(f"Days Since Last Run: {user_info[5]}")
+            st.write("New User Data")
+            st.write(f"Age: {age_group}")
+            st.write(f"Gender: {gender}")
+            st.write(f"Distance Run Last Week (in km): {distance_last_week}")
+            st.write(f"Average Pace Last Week: {pace_last_week.strftime('%H:%M:%S')}")
+            st.write(f"Number of Days Run in Last Week: {num_days_run_last_week}")
+            st.write(f"Days Since Last Run: {days_since_last_run}")
             st.write("Run Data:")
-            st.write(df)
+            st.write(new_user_df)
 
             # Validate inputs for new users
-            if None in user_info:
+            if None in [age_group, gender, distance_last_week, pace_last_week]:
                 st.error("Please fill in all new user information fields.")
             else:
                 # Add a "Next" button for new users
@@ -103,8 +110,9 @@ elif st.session_state.current_page == "Run Plan" and st.session_state.show_run_p
 
     # Update the user database and get the recommendations
     if st.button("Update User Data"):
-        user_db_data = update_database(new_user, user_info[1], user_info[0], month, km_this_week, days_to_run, user_id, df)
-        filtered_data = database_for_recommender(raw_df, user_db_data, user_info[1], user_info[0], month, days_to_run, km_this_week)
+        
+        user_db_data = update_database(new_user, gender, age_group, 7, km_this_week, days_to_run, user_id, new_user_df)
+        filtered_data = database_for_recommender(user_db_data, new_user_df, gender, age_group, 7, days_to_run, km_this_week)
         st.write("Updated user database and retrieved recommendations.")
         st.write("Recommendations:")
         st.write(filtered_data)

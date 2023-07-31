@@ -1,4 +1,6 @@
 import pandas as pd
+from datetime import datetime
+import pyarrow.parquet as pq
 
 def load_data():
     '''function to load in datasets to memory'''

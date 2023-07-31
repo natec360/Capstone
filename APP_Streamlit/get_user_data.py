@@ -14,7 +14,8 @@ def get_user_data():
 
     # User Type
     user_type = st.radio("Are you a new user?", ('Yes', 'No'))
-    new_user = True if user_type == 'Yes' else False
+    #new_user = True if user_type == 'Yes' else False
+    new_user = 1 if user_type == 'Yes' else 0
 
     user_id = None  # Initialize user_id variable to None
     missing_fields = []
@@ -23,7 +24,16 @@ def get_user_data():
         # New User Info
         st.header("New User Information")
         
-        age = st.number_input("What is your age?", min_value=18, step=1)
+        age = st.number_input("What is your age?", min_value=18, step=1) 
+        age = int(age)
+        if age >= 18:
+            if 18 <= age <= 34:
+                age_group = "18 - 34"
+            elif 35 <= age <= 54:
+                age_group = "35 - 54"
+            else:
+                age_group = "55 +"
+
         gender = st.selectbox("What is your gender?", ('Male', 'Female','Other'))
         distance_last_week = st.number_input("Distance run last week (in kilometers):", min_value=0.0, step=0.1)
         pace_last_week = st.time_input("Average pace last week:", value=datetime.strptime('00:00:00', '%H:%M:%S'))
@@ -81,6 +91,6 @@ def get_user_data():
         return None, None, None, None, None, None, None, None, None
 
     if new_user:
-        return True, age, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
+        return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
     else:
-        return False, None, None, None, None, None, None, df, user_id
+        return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
