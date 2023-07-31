@@ -3,6 +3,10 @@ from welcome_page import show_welcome_page
 from get_user_data import get_user_data
 from run_plan_page import get_run_plan
 from database_utils import update_database, database_for_recommender
+from recommender import generate_run_ratings, return_run_schedule
+
+#from main import main  # Import the main function from main.py that will print the run_schedule
+
 
 # Set the Streamlit page configuration
 st.set_page_config(page_title="Runner Training Plan App", page_icon="🏃‍♂️")
@@ -104,6 +108,18 @@ elif st.session_state.current_page == "Run Plan" and st.session_state.show_run_p
         st.write("Updated user database and retrieved recommendations.")
         st.write("Recommendations:")
         st.write(filtered_data)
+
+        # Generate run ratings and return the schedule
+        run_recommendations = generate_run_ratings(filtered_data, user_id, km_this_week, days_to_run)
+        run_schedule = return_run_schedule(run_recommendations, days_to_run, km_this_week, medium_intensity_runs, high_intensity_runs, sunday_long_run)
+
+
+'''
+    # Call the main function from main.py to get the run schedule
+    run_schedule = main()
+    st.write("Run Schedule:")
+    st.write(run_schedule)
+'''
 
 # Add a "Reset" button to the sidebar
 if st.sidebar.button("Reset"):

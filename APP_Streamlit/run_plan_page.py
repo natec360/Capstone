@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 def get_run_plan():
-    st.title("Runner Training Plan - This Week's Plan")
+    st.header("Runner Training Plan - This Week's Plan")
 
     km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1)
     days_to_run = st.slider("How many days do you plan to run?", 0, 7)
