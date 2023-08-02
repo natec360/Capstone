@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+from datetime import timedelta
 import pyarrow.parquet as pq
 
 def load_data():
@@ -36,8 +37,15 @@ def load_data():
     # create user ID
     raw_df["user_id"] = raw_df["athlete"].astype(str) + "." + raw_df["current_month"].astype(str)
 
+#    handle the "Duration" format in "HH:MM:SS"
+    try:
+        raw_df['Duration'] = pd.to_timedelta(raw_df['Duration'])
+    except:
+        # Handle any invalid "Duration" values by setting them to NaT (Not-a-Time)
+        raw_df['Duration'] = pd.to_timedelta(raw_df['Duration'], errors='coerce')
+
     # remove any missings from the data
-    raw_df = raw_df[raw_df["prev_month_weekly_km"].notna()]
+    raw_df = raw_df.dropna(subset=["prev_month_weekly_km"])
 
     return raw_df
 
@@ -61,17 +69,23 @@ def update_database(new_user, gender, age_bucket, month, weekly_target, number_o
         # align data types
         user_df['user_id'] = user_df['user_id'].astype('string')
         user_df['Date'] = pd.to_datetime(user_df['Date']).dt.date
-        updated_user_df['Date'] = pd.to_datetime(updated_user_df['Date']).dt.date
         try:
             user_df['Duration'] = pd.to_datetime(user_df['Duration'])
             user_df['Duration'] = user_df['Duration'].apply(lambda x: x.strftime('%H:%M:%S'))
         except:
             pass
+        
+
+        # Check if 'Date' column is present in updated_user_df
+        if 'Date' not in updated_user_df.columns:
+            updated_user_df['Date'] = None
+
         try:
-            updated_user_df['Duration'] = pd.to_datetime(updated_user_df['Duration'])
-            updated_user_df['Duration'] = updated_user_df['Duration'].apply(lambda x: x.strftime('%H:%M:%S'))
+            updated_user_df['Duration'] = pd.to_timedelta(updated_user_df['Duration'])
         except:
-            pass
+            # Handle any invalid "Duration" values by setting them to NaT (Not-a-Time)
+            updated_user_df['Duration'] = pd.to_timedelta(updated_user_df['Duration'], errors='coerce')
+
 
         # concatenate with updated data
         user_df = pd.concat([user_df, updated_user_df])

@@ -12,6 +12,7 @@ from datetime import datetime as dt
 from surprise import Dataset, Reader
 from surprise import SVD
 from surprise.model_selection import cross_validate
+from datetime import timedelta
 from itertools import combinations
 
 
@@ -49,6 +50,12 @@ def generate_run_ratings(filtered_df,user_id, weekly_target, number_of_days, lon
         results_dict['run_rating'].append(rating_prediction)
         
     return pd.DataFrame(results_dict).sort_values(by=['run_rating'], ascending = False)
+
+
+def convert_timedelta_to_minutes(timedelta_value):
+    # Convert a timedelta object to minutes
+    return timedelta_value.total_seconds() / 60
+
 
 def adjust_pace_based_on_intensity(pace, intensity):
     if intensity == 'high':
