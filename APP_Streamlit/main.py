@@ -1,15 +1,20 @@
 # main.py
 
-import user_data as user
-import database_functions as dbf
-import recommender as rec
+from recommender import generate_run_ratings, return_run_schedule
+from get_user_data import get_user_data, get_run_plan
+import database_utils as dbf
+
 
 def main():
     # Collect user inputs (note only works for new users for now)
-    new_user, user_id, gender, age_group, month, updated_user_df = user.get_user_data()
+    #new_user, user_id, gender, age_group, month, updated_user_df = user.get_user_data()
+    new_user, user_id, gender, age_group, month, updated_user_df = get_user_data()
+
 
     # Collect user goals
-    weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, long_run = user.get_run_plan()
+    #weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, long_run = user.get_run_plan()
+    weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, long_run = get_run_plan()
+
 
     # Load the database in memory (Move this to server start when website work)
     raw_df = dbf.load_data()
@@ -22,16 +27,9 @@ def main():
     filtered_df = dbf.database_for_recommender(raw_df, update_user_df, gender, age_group, month, days_to_run, weekly_target)
 
     # Return recommendations
-    recommendations_df = rec.generate_run_ratings(filtered_df, user_id, weekly_target, days_to_run)
+    recommendations_df = generate_run_ratings(filtered_df, user_id, weekly_target, days_to_run)
 
     # Return training plan
-    run_schedule = rec.return_run_schedule(recommendations_df, days_to_run, weekly_target, medium_intensity_runs, high_intensity_runs, long_run)
+    run_schedule = return_run_schedule(recommendations_df, days_to_run, weekly_target, medium_intensity_runs, high_intensity_runs, long_run)
 
     return run_schedule
-
-'''
-# This block is for running main.py independently
-if __name__ == "__main__":
-    schedule = main()
-    print(schedule)
-'''

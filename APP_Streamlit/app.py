@@ -1,222 +1,86 @@
 import streamlit as st
-import pandas as pd
-from welcome_page import show_welcome_page
-from get_user_data import get_user_data
-from run_plan_page import get_run_plan
-from database_utils import update_database, database_for_recommender
+from database_utils import load_data, update_database, database_for_recommender
 from recommender import generate_run_ratings, return_run_schedule
+from get_user_data import get_user_data, get_run_plan
+from welcome_page import show_welcome_page
+from main import main
 
-#from main import main  # Import the main function from main.py that will print the run_schedule
 
-#initialize objects
-new_user, gender, age_group, month, km_this_week, days_to_run, user_id = None, None, None, None, None, None, None
-days_to_run, km_this_week = None, None
-medium_intensity_runs, high_intensity_runs, sunday_long_run = None, None, None
-new_user_df = pd.DataFrame()
-user_db_data = pd.DataFrame()
 
-# Set the Streamlit page configuration
-st.set_page_config(page_title="Runner Training Plan App", page_icon="🏃‍♂️")
+def main():
 
-# Create a sidebar navigation menu
-st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Choose a page", ["Welcome", "User Input", "Run Plan", "Table Input Results"])  # Add the new page
 
-# Initialize the show_run_plan_page session state variable to False
-if "show_run_plan_page" not in st.session_state:
-    st.session_state.show_run_plan_page = False
-
-# Create a state variable to track the current page
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "Welcome"
-
-# Create a state variable to track the reset action
-if "reset" not in st.session_state:
-    st.session_state.reset = False
-
-# Handle page transitions
-if st.session_state.current_page == "Welcome":
+    # Show welcome page
     show_welcome_page()
 
-    # Add a "Start" button on the welcome page with a unique key
-    if st.button("Click here to begin", key="start_button"):
-        # Set the current page to "User Input" when the button is clicked
-        st.session_state.current_page = "User Input"
 
-elif st.session_state.current_page == "User Input":
-    # Check if reset button is clicked
-    if st.session_state.reset:
-        # Clear user input data
-        st.session_state.clear()
-        st.session_state.reset = False
-        st.session_state.current_page = "Welcome"
-        st.experimental_rerun()
+    # Load data
+    raw_df = load_data()
+    filtered_df = None
 
-    new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id = get_user_data()
-    
-    if new_user_df is not None:
-        # Display user data
-        st.write("User Data")
-        st.write(f"New User: {'Yes' if new_user else 'No'}")
-        st.write(f"User ID: {user_id}")
-        st.write(f"Age Group: {age_group}")
-        st.write(f"Gender: {gender}")
-        st.write(f"Distance Ran Last Week (in km): {distance_last_week}")
-        st.write(f"Average Pace Last Week: {str(pace_last_week)}")
-        st.write(f"Number of Days Ran Last Week: {num_days_run_last_week}")
-        st.write(f"Days Since Last Run: {days_since_last_run}")
+    # Get run schedule based on user input
+    run_schedule = main()
+
+    st.title("Runner Training Plan Recommender")
+
+    # User Input Section
+    st.header("User Input Form")
+    new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id = get_user_data()
+    #new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id = get_user_data()
+
+    # Update user database
+    if new_user:
+        updated_user_df = None
+        st.warning("Please complete the 'Information on Each Run' section below.")
+    else:
+        updated_user_df = update_database()
+
+    # Prepare data for the recommender system
+    if not new_user and updated_user_df is not None:
+        filtered_df = database_for_recommender()
+
+    if not new_user or (new_user and updated_user_df is not None):
+        # Generate run ratings
+        run_recommendations = generate_run_ratings()
         
-        st.write("Run Data:")
-        st.write(new_user_df)
+        # Ask for this week's plan
+        if run_recommendations is not None:
+            st.subheader("Runner Training Plan - This Week's Plan")
+            km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
 
-        if new_user:
-            # Validate inputs for new users
-            if None in [age_group, gender, distance_last_week, pace_last_week]:
-                st.error("Please fill in all new user information fields.")
-            else:
-                # Add a "Next" button for new users
-                if st.button("Next (New User)", key="next_new_user"):
-                    # Set show_run_plan_page to True when the button is clicked
-                    st.session_state.show_run_plan_page = True
-                    # Set the current page to "Run Plan" when the button is clicked
-                    st.session_state.current_page = "Run Plan"
+            # Return the optimized run schedule
+            if km_this_week and days_to_run and medium_intensity_runs is not None and high_intensity_runs is not None and sunday_long_run is not None:
+                number_of_days = days_to_run
+                weekly_target = km_this_week
+                long_run = 'yes' if sunday_long_run else 'no'
+                run_schedule = return_run_schedule()
 
-        else:
-            # Add a "Please Proceed Here" button for returning users if all fields are entered
-            if st.button("Please Proceed Here"):
-                # Set show_run_plan_page to True when the button is clicked
-                st.session_state.show_run_plan_page = True
-                # Set the current page to "Run Plan" when the button is clicked
-                st.session_state.current_page = "Run Plan"
-   
-'''
-        if new_user:
-            # Display new user data
-            st.write("New User Data")
-            st.write(f"User ID: {user_id}")  # Show the generated user ID
-            st.write(f"Age: {age_group}")
-            st.write(f"Gender: {gender}")
-            st.write(f"Distance Run Last Week (in km): {distance_last_week}")
-            st.write(f"Average Pace Last Week: {str(pace_last_week)}")
-            st.write(f"Number of Days Ran in Last Week: {num_days_run_last_week}")
-            st.write(f"Days Since Last Run: {days_since_last_run}")
+                # Display the schedule
+                st.subheader("Your Run Schedule for This Week:")
+                st.dataframe(run_schedule)
 
-            st.write("Run Data:")
-            st.write(new_user_df)
-        
-            # Validate inputs for new users
-            if None in [age_group, gender, distance_last_week, pace_last_week]:
-                st.error("Please fill in all new user information fields.")
-            else:
-                # Add a "Next" button for new users
-                if st.button("Next (New User)", key="next_new_user"):
-                    # Set show_run_plan_page to True when the button is clicked
-                    st.session_state.show_run_plan_page = True
-                    # Set the current page to "Run Plan" when the button is clicked
-                    st.session_state.current_page = "Run Plan"
+    # Display user input data for verification
+    st.subheader("User Input Data:")
+    if new_user:
+        st.write("New User ID:", user_id)
+    else:
+        st.write("Returning User ID:", user_id)
 
-        else:
-            # Add a "Please Proceed Here" button for returning users if all fields are entered
-            if st.button("Please Proceed Here"):
-                # Set show_run_plan_page to True when the button is clicked
-                st.session_state.show_run_plan_page = True
-                # Set the current page to "Run Plan" when the button is clicked
-                st.session_state.current_page = "Run Plan"
-'''
+    st.write("Age Group:", age_group)
+    st.write("Gender:", gender)
+    st.write("Distance Last Week (in km):", distance_last_week)
+    st.write("Average Pace Last Week:", pace_last_week)
+    st.write("Number of Days Run Last Week:", num_days_run_last_week)
+    st.write("Days Since Last Run:", days_since_last_run)
+    st.write("Current Month:", month)
 
-# Show user data in a table format
-if st.session_state.current_page == "User Input" and new_user is not None:
-    st.write("User Data Summary:")
-    user_data_summary = pd.DataFrame({
-        "Field": ["User ID", "Age Group", "Gender", "Distance Run Last Week (in km)", "Average Pace Last Week", "Number of Days Run in Last Week", "Days Since Last Run"],
-        "Value": [user_id, age_group, gender, distance_last_week, str_pace_last_week, num_days_run_last_week, days_since_last_run]
-    })
-    st.dataframe(user_data_summary)
+    if updated_user_df is not None:
+        st.subheader("Additional User Run Data:")
+        st.dataframe(updated_user_df)
 
+    if filtered_df is not None:
+        st.subheader("Filtered Data for Recommender System:")
+        st.dataframe(filtered_df)
 
-    # Check if any field is missing for returning users
-    if not new_user:
-        missing_fields = []
-        if None in [num_days_run_last_week, days_since_last_run]:
-            if num_days_run_last_week is None:
-                missing_fields.append("Number of Days Ran in Last Week")
-            if days_since_last_run is None:
-                missing_fields.append("Days Since Last Run")
-            st.error("Please fill in the following fields for returning users: " + ", ".join(missing_fields) + ".")
-
-    elif st.session_state.current_page == "Run Plan" and st.session_state.show_run_plan_page:
-
-
-elif st.session_state.current_page == "Run Plan" and st.session_state.show_run_plan_page:
-    
-    # Check if reset button is clicked
-    if st.session_state.reset:
-        # Clear user input data
-        st.session_state.clear()
-        st.session_state.reset = False
-        st.session_state.current_page = "Welcome"
-        st.experimental_rerun()
-    
-    st.title("Runner Training Plan - Run Input Form")
-    km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
-
-    # Display the run input data
-    st.write("Run Input Data:")
-    st.write(f"Km this week: {km_this_week}")
-    st.write(f"Days to run: {days_to_run}")
-    st.write(f"Medium intensity runs: {medium_intensity_runs}")
-    st.write(f"High intensity runs: {high_intensity_runs}")
-    st.write(f"Sunday long run: {'Yes' if sunday_long_run else 'No'}")
-
-    # Update the user database and get the recommendations
-    if st.button("Update User Data"):
-        
-        user_db_data = update_database(new_user, gender, age_group, month, km_this_week, days_to_run, user_id, new_user_df)
-        filtered_data = database_for_recommender(user_db_data, new_user_df, gender, age_group, month, days_to_run, km_this_week)
-        st.write("Updated user database and retrieved recommendations.")
-        st.write("Recommendations:")
-        st.write(filtered_data)
-
-        # Generate run ratings and return the schedule
-        run_recommendations = generate_run_ratings(filtered_data, user_id, km_this_week, days_to_run)
-        run_schedule = return_run_schedule(run_recommendations, days_to_run, km_this_week, medium_intensity_runs, high_intensity_runs, sunday_long_run)
-
-
-elif st.session_state.current_page == "Table Input Results":
-    st.title("Table Input Results")
-    if new_user_df is not None:
-        st.subheader("User Input Data")
-        st.write(new_user_df)
-
-    if km_this_week is not None and days_to_run is not None:
-        st.subheader("Run Plan Data")
-        run_plan_data = {
-            "Km this week": [km_this_week],
-            "Days to run": [days_to_run],
-            "Medium intensity runs": [medium_intensity_runs],
-            "High intensity runs": [high_intensity_runs],
-            "Sunday long run": ['Yes' if sunday_long_run else 'No']
-        }
-        st.write(pd.DataFrame(run_plan_data))
-
-
-'''
-elif st.session_state.current_page == "Table Input Results":
-    # Show the data being passed into the databases/parquet file
-    st.title("Table Input Results")
-    st.write("New User Data")
-    st.write(f"User ID: {user_id}")
-    st.write(f"Age: {age_group}")
-    st.write(f"Gender: {gender}")
-    st.write(f"Distance Run Last Week (in km): {distance_last_week}")
-    st.write(f"Average Pace Last Week: {pace_last_week.strftime('%H:%M:%S')}")
-    st.write(f"Number of Days Run in Last Week: {num_days_run_last_week}")
-    st.write(f"Days Since Last Run: {days_since_last_run}")
-    st.write("Run Data:")
-    st.write(new_user_df)
-'''
-
-# Add a "Reset" button to the sidebar
-if st.sidebar.button("Reset"):
-    st.session_state.reset = True
-    st.experimental_rerun()
+if __name__ == "__main__":
+    main()

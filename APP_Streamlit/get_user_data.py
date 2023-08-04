@@ -52,25 +52,7 @@ def get_user_data():
         # Generate a random user ID for new users
         user_id = generate_random_user_id()
 
-        '''
-        age = st.number_input("What is your age?", min_value=18, step=1) 
-        age = int(age)
-        if age >= 18:
-            if 18 <= age <= 34:
-                age_group = "18 - 34"
-            elif 35 <= age <= 54:
-                age_group = "35 - 54"
-            else:
-                age_group = "55 +"
-        
-        gender = st.selectbox("What is your gender?", ('Male', 'Female','Other'))
-        distance_last_week = st.number_input("Distance run last week (in kilometers):", min_value=0.0, step=0.1)
-        pace_last_week = st.time_input("Average pace last week:", value=datetime.strptime('00:00:00', '%H:%M:%S'))
-        num_days_run_last_week = st.slider("Number of days run in last week:", 0, 7)
-        days_since_last_run = st.slider("Days since last run:", 0, 30)
-        '''
 
-        # Additional data collection for new users can be added here
     else:
         # Returning User Info
         st.header("Returning User Information")
@@ -129,7 +111,7 @@ def get_user_data():
         st.subheader(f"Day {i+1}")
         date = st.date_input("Enter a date you ran:", key=f"date_{i}")
         distance_value = st.number_input("How many kilometers did you run?", min_value=0.0, step=0.1, key=f"distance_{i}")
-        pace_value = st.text_input("What was the total run time in HH:MM:SS?", key=f"pace_{i}", value="00:00:00")
+        pace_value = st.text_input("What was the total run time?", key=f"pace_{i}", value="00:00:00")
 
         try:
             # Convert the input pace to a timedelta object
@@ -168,3 +150,34 @@ def get_user_data():
         return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id
     else:
         return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id
+
+
+
+def get_run_plan():
+    st.header("Runner Training Plan - This Week's Plan")
+
+    km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1)
+    days_to_run = st.slider("How many days do you plan to run?", 0, 7)
+    medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1)
+    high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1)
+    sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'))
+
+    # Validate inputs
+    error_msg = ""
+    if km_this_week is None or days_to_run is None or medium_intensity_runs is None or high_intensity_runs is None or sunday_long_run is None:
+        error_msg = "Please enter all information in fields."
+
+    if error_msg:
+        st.error(error_msg)
+        # Return None to indicate an error
+        return None, None, None, None, None
+    
+    # Set high_intensity_runs to 0 if it is not provided by the user
+    if high_intensity_runs is None:
+        high_intensity_runs = 0
+    
+    # Set high_intensity_runs to 0 if it is not provided by the user
+    if medium_intensity_runs is None:
+        medium_intensity_runs = 0
+
+    return km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run == 'Yes'
