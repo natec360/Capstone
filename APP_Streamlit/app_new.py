@@ -17,9 +17,37 @@ def main_app():
         st.error("Please fill in all required fields.")
         return
 
+    # Display user data in a table
+    st.subheader("User Data")
+    user_data = {
+        "New User": "Yes" if new_user else "No",
+        "User ID": user_id,
+        "Age Group": age_group,
+        "Gender": gender,
+        "Distance Ran Last Week (in km)": distance_last_week,
+        "Average Pace Last Week": pace_last_week,
+        "Number of Days Ran Last Week": num_days_run_last_week,
+        "Days Since Last Run": days_since_last_run
+    }
+    st.table(user_data)
+
+    # Display the "Information on Each Run" in a table format
+    st.subheader("Information on Each Run (Summary)")
+    st.table(df)
+
     # Collect the runner training plan for this week using get_run_plan function
-   #km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
     km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
+
+    st.subheader("Run Plan Data")
+    run_plan_data = {
+        "User ID": user_id,
+        "Km this week": km_this_week,
+        "Days to run": days_to_run,
+        "Medium intensity runs": medium_intensity_runs,
+        "High intensity runs": high_intensity_runs,
+        "Sunday long run": "Yes" if sunday_long_run else "No"
+    }
+    st.table(run_plan_data)
 
 
     # If any of the required run plan inputs are missing, display an error message
