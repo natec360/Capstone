@@ -32,27 +32,21 @@ def load_data():
         except:
             raise ValueError('Not a month')
 
-    raw_df["current_month"] = raw_df["current_month"].apply(lambda x: mtn(x))
+    raw_df["current_month"] =  raw_df["current_month"].apply(lambda x:mtn(x)) 
 
-    # create user ID
+    #create user ID
     raw_df["user_id"] = raw_df["athlete"].astype(str) + "." + raw_df["current_month"].astype(str)
 
-#    handle the "Duration" format in "HH:MM:SS"
-    try:
-        raw_df['Duration'] = pd.to_timedelta(raw_df['Duration'])
-    except:
-        # Handle any invalid "Duration" values by setting them to NaT (Not-a-Time)
-        raw_df['Duration'] = pd.to_timedelta(raw_df['Duration'], errors='coerce')
-
-    # remove any missings from the data
-    raw_df = raw_df.dropna(subset=["prev_month_weekly_km"])
+    #remove any missings from the data
+    raw_df= raw_df[raw_df["prev_month_weekly_km"].notna()]
 
     return raw_df
 
 
-def update_database(new_user, gender, age_bucket, month, weekly_target, number_of_days, user_id, updated_user_df):
+def update_database():
     '''Update user database and return ratings'''
-
+    global new_user, gender, age_group, month, weekly_target, number_of_days, user_id, updated_user_df
+    
     if new_user and updated_user_df.empty:
         # cold start for new user. With no data. Assumes long run 2x distance other runs.
         new_user_data = {
@@ -63,28 +57,24 @@ def update_database(new_user, gender, age_bucket, month, weekly_target, number_o
         update_user_db = pd.DataFrame(new_user_data)
 
     else:
-        # load in new database
+        
+        #load in new database
         user_df = pd.read_parquet('../App_Data/new_user_db.parquet')
-
-        # align data types
+        
+        #align data types
         user_df['user_id'] = user_df['user_id'].astype('string')
         user_df['Date'] = pd.to_datetime(user_df['Date']).dt.date
+        updated_user_df['Date'] = pd.to_datetime(updated_user_df['Date']).dt.date
         try:
-            user_df['Duration'] = pd.to_datetime(user_df['Duration'])
+            user_df['Duration'] = pd.to_datetime(user_df['Duration']) 
             user_df['Duration'] = user_df['Duration'].apply(lambda x: x.strftime('%H:%M:%S'))
         except:
             pass
-        
-
-        # Check if 'Date' column is present in updated_user_df
-        if 'Date' not in updated_user_df.columns:
-            updated_user_df['Date'] = None
-
         try:
-            updated_user_df['Duration'] = pd.to_timedelta(updated_user_df['Duration'])
+            updated_user_df['Duration'] = pd.to_datetime(updated_user_df['Duration']) 
+            updated_user_df['Duration'] = updated_user_df['Duration'].apply(lambda x: x.strftime('%H:%M:%S'))
         except:
-            # Handle any invalid "Duration" values by setting them to NaT (Not-a-Time)
-            updated_user_df['Duration'] = pd.to_timedelta(updated_user_df['Duration'], errors='coerce')
+            pass  
 
 
         # concatenate with updated data
@@ -117,13 +107,15 @@ def update_database(new_user, gender, age_bucket, month, weekly_target, number_o
     return update_user_db
 
 
-def database_for_recommender(raw_df, new_user_df, gender, age_bucket, month, number_of_days, weekly_target):
+def database_for_recommender():
     '''Filter raw data and add user data for the recommender system'''
-
+    global raw_df, new_user_df, gender, age_group, month, number_of_days, weekly_target
+    
+    
     # Define objects for Surprise. Must be in user, item, rating order
     filtered_df = raw_df.loc[
         (raw_df['gender'] == gender) &
-        (raw_df['age_bucket'] == age_bucket) &
+        (raw_df['age_group'] == age_group) &
         (raw_df['current_month'] == month) &
         (raw_df['prev_month_weekly_days_run'] > (number_of_days - 1)) & 
         (raw_df['prev_month_weekly_days_run'] < (number_of_days + 1)) &
@@ -132,7 +124,7 @@ def database_for_recommender(raw_df, new_user_df, gender, age_bucket, month, num
     ]
 
     if filtered_df.size <= 15:
-        print("Insufficient data for", gender, age_bucket, target_kms)
+        print("Insufficient data for", gender, age_group, target_kms)
         BREAK
 
     # Append new user data

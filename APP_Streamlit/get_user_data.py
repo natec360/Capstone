@@ -35,7 +35,8 @@ def format_pace_string(pace_timedelta):
 
 def get_user_data():
     st.title("Runner Training Plan - User Input Form")
-
+    global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
+    
     # User Type
     user_type = st.radio("Are you a new user?", ('Yes', 'No'))
     #new_user = True if user_type == 'Yes' else False
@@ -106,13 +107,14 @@ def get_user_data():
 
     try:
         # Convert the input pace to a timedelta object
-        pace_hours, pace_minutes, pace_seconds = map(int, pace_last_week_input.split(':'))
-        pace_last_week = timedelta(hours=pace_hours, minutes=pace_minutes, seconds=pace_seconds)
+        #pace_hours, pace_minutes, pace_seconds = map(int, pace_last_week_input.split(':'))
+        #pace_last_week = datetime.strptime(pace_value, '%H:%M:%S')
+        pace_last_week = datetime.strptime(pace_last_week_input, '%H:%M:%S')
     except ValueError:
-        pace_last_week = timedelta(seconds=0)  # Set to default value if input is invalid
+        pace_last_week = None  # Set to default value if input is invalid
 
     # Convert the timedelta object to a string for displaying in the app
-    str_pace_last_week = str(pace_last_week)
+    str_pace_last_week = str(pace_last_week.strftime("%H:%M:%S"))
 
 
     num_days_run_last_week = st.slider("Number of days ran last week:", 0, 7)
@@ -127,19 +129,24 @@ def get_user_data():
         st.subheader(f"Day {i+1}")
         date = st.date_input("Enter a date you ran:", key=f"date_{i}")
         distance_value = st.number_input("How many kilometers did you run?", min_value=0.0, step=0.1, key=f"distance_{i}")
-        pace_value = st.text_input("What was the total run pace?", key=f"pace_{i}", value="00:00")
+        pace_value = st.text_input("What was the total run time in HH:MM:SS?", key=f"pace_{i}", value="00:00:00")
 
         try:
             # Convert the input pace to a timedelta object
-            pace_minutes, pace_seconds = map(int, pace_value.split(':'))
-            pace_timedelta = timedelta(minutes=pace_minutes, seconds=pace_seconds)
+            #pace_minutes, pace_seconds = map(int, pace_value.split(':'))
+            pace_timedelta = datetime.strptime(pace_value, '%H:%M:%S')
         except ValueError:
             # Handle any invalid "Duration" values by setting them to None or any default value you prefer
             pace_timedelta = None  # or timedelta(seconds=0) for default value
 
         data.append([date, distance_value, pace_timedelta])
 
-    df = pd.DataFrame(data, columns=['Date', 'Distance (in km)', 'Pace'])
+    df = pd.DataFrame(data, columns=['Date', 'Distance', 'Duration'])
+    
+    # Extract the month from the first row of the DataFrame
+    month = None
+    if len(df) > 0:
+        month = df.loc[0, 'Date'].month
 
     # Validate inputs
     error_msg = ""
@@ -155,9 +162,9 @@ def get_user_data():
 
     if error_msg:
         st.error("Errors found:\n" + error_msg)
-        return None, None, None, None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None, None
 
     if new_user:
-        return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
+        return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id
     else:
-        return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, df, user_id
+        return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id

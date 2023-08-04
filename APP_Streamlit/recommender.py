@@ -16,8 +16,10 @@ from datetime import timedelta
 from itertools import combinations
 
 
-def generate_run_ratings(filtered_df,user_id, weekly_target, number_of_days, long_run_multiple = 3):
-
+def generate_run_ratings():
+    global filtered_df,user_id, weekly_target, number_of_days
+    long_run_multiple = 3
+    
     """
     Trains a SVD recommender and generates a list of run distances with ratings based on weekly target, 
     number of days run each week, with an optional param that sets the upper bound long run distance
@@ -90,8 +92,8 @@ def calculate_injury_likelihood(days_since_last_run, average_distance, average_p
     injury_likelihood = min(100, max(0, injury_score))  # Cap the score between 0 and 100
     return injury_likelihood
 
-def return_run_schedule(run_recommendations, number_of_days, weekly_target, medium_intensity_runs, high_intensity_runs, long_run):
-    
+def return_run_schedule():
+    global run_recommendations, number_of_days, weekly_target, medium_intensity_runs, high_intensity_runs, long_run
     '''
     function to return optimized schedule of runs
     

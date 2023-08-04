@@ -3,7 +3,7 @@ import pandas as pd
 from welcome_page import show_welcome_page
 from get_user_data import get_user_data
 from run_plan_page import get_run_plan
-from database_utils import update_database, database_for_recommender
+from database_utils import update_database, database_for_recommender, load_data
 from recommender import generate_run_ratings, return_run_schedule
 
 # Set the Streamlit page configuration
@@ -25,23 +25,29 @@ if "current_page" not in st.session_state:
 if "reset" not in st.session_state:
     st.session_state.reset = False
 
-# Global variables
-new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id = None, None, None, None, None, None, None, None, None
-km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = None, None, None, None, None
-user_db_data = pd.DataFrame()
-
 # Format the timedelta as HH:MM:SS
-def format_pace_string(pace_timedelta):
-    if pace_timedelta:
+''' 
+   if pace_timedelta:
         hours, remainder = divmod(pace_timedelta.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
     return "00:00:00"
-
+'''
+    
 # Main function to run the Streamlit app
 def main():
-    global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id
-    global km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run, user_db_data
+    #new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id
+    #weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run, user_db_data, month
+    
+    
+    # variables
+    new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id = None, None, None, None, None, None, None, None, None
+    weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run, month = None, None, None, None, None, None
+    user_db_data = pd.DataFrame()
+    new_user_df = pd.DataFrame()
+    run_recommendations = pd.DataFrame()
+    run_schedule = pd.DataFrame()
+    raw_df = pd.DataFrame()
 
     # Call the corresponding function based on the current page
     if st.session_state.current_page == "Welcome":
@@ -53,6 +59,7 @@ def main():
     
     elif st.session_state.current_page == "User Input":
         handle_user_input()
+        raw_df = load_data()
     
     elif st.session_state.current_page == "Run Plan":
         generate_run_plan()
@@ -66,7 +73,7 @@ def main():
         st.experimental_rerun()
 
 def handle_user_input():
-    global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id
+    global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, new_user_df, user_id
 
     # Check if reset button is clicked
     if st.session_state.reset:
@@ -76,7 +83,7 @@ def handle_user_input():
         st.session_state.current_page = "Welcome"
         st.experimental_rerun()
 
-    new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, new_user_df, user_id = get_user_data()
+    new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run,  month,  new_user_df, user_id = get_user_data()
     
     if new_user_df is not None:
         # Display user data
@@ -86,7 +93,7 @@ def handle_user_input():
         st.write(f"Age Group: {age_group}")
         st.write(f"Gender: {gender}")
         st.write(f"Distance Ran Last Week (in km): {distance_last_week}")
-        st.write(f"Average Pace Last Week: {format_pace_string(pace_last_week)}")
+        st.write(f"Average Pace Last Week: {pace_last_week}")
         st.write(f"Number of Days Ran Last Week: {num_days_run_last_week}")
         st.write(f"Days Since Last Run: {days_since_last_run}")
         
@@ -118,7 +125,7 @@ def handle_user_input():
         st.write("User Data Summary:")
         user_data_summary = pd.DataFrame({
             "Field": ["User ID", "Age Group", "Gender", "Distance Run Last Week (in km)", "Average Pace Last Week", "Number of Days Run in Last Week", "Days Since Last Run"],
-            "Value": [user_id, age_group, gender, distance_last_week, format_pace_string(pace_last_week), num_days_run_last_week, days_since_last_run]
+            "Value": [user_id, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run]
         })
         st.dataframe(user_data_summary)
 
@@ -131,10 +138,12 @@ def handle_user_input():
                 if days_since_last_run is None:
                     missing_fields.append("Days Since Last Run")
                 st.error("Please fill in the following fields for returning users: " + ", ".join(missing_fields) + ".")
+                
 
 def generate_run_plan():
-    global km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run, user_db_data
-
+    #weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run, user_db_data
+    global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run,  month,  new_user_df, user_id, run_schedule
+    
     # Check if reset button is clicked
     if st.session_state.reset:
         # Clear user input data
@@ -144,30 +153,42 @@ def generate_run_plan():
         st.experimental_rerun()
 
     st.title("Runner Training Plan - Run Input Form")
-    km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
+    weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
 
     # Display the run input data
     st.write("Run Input Data:")
-    st.write(f"Km this week: {km_this_week}")
+    st.write(f"User ID: {user_id}")
+    st.write(f"Km this week: {weekly_target}")
     st.write(f"Days to run: {days_to_run}")
     st.write(f"Medium intensity runs: {medium_intensity_runs}")
     st.write(f"High intensity runs: {high_intensity_runs}")
     st.write(f"Sunday long run: {'Yes' if sunday_long_run else 'No'}")
+    
+    st.write("Run Data:")
+    st.write(new_user_df)
 
     # Update the user database and get the recommendations
     if st.button("Update User Data"):
-        # Assume you have a variable named 'month' that contains the current month number (e.g., 8 for August)
-        user_db_data = update_database(new_user, gender, age_group, month, km_this_week, days_to_run, user_id, new_user_df)
-        filtered_data = database_for_recommender(user_db_data, new_user_df, gender, age_group, month, days_to_run, km_this_week)
+
+        user_db_data = update_database()
+        st.write("User Data:")
+        st.write(user_db_data)
+
+        filtered_data = database_for_recommender()
         st.write("Updated user database and retrieved recommendations.")
         st.write("Recommendations:")
         st.write(filtered_data)
 
         # Generate run ratings and return the schedule
-        run_recommendations = generate_run_ratings(filtered_data, user_id, km_this_week, days_to_run)
-        run_schedule = return_run_schedule(run_recommendations, days_to_run, km_this_week, medium_intensity_runs, high_intensity_runs, sunday_long_run)
+        run_recommendations = generate_run_ratings()
+        run_schedule = return_run_schedule()
 
 def show_table_input_results():
+    global run_schedule
+    st.subheader("Run Plan")
+    st.write(run_schedule)
+    
+'''
     st.title("Table Input Results")
     if new_user_df is not None:
         st.subheader("User Input Data")
@@ -183,6 +204,10 @@ def show_table_input_results():
             "Sunday long run": ['Yes' if sunday_long_run else 'No']
         }
         st.write(pd.DataFrame(run_plan_data))
+        
+        st.subheader("Run Plan ")
+        st.write(run_schedule)
+'''
 
 if __name__ == "__main__":
     main()
