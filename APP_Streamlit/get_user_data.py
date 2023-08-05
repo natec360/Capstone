@@ -39,7 +39,7 @@ def get_user_data():
     #new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
    
     # User Type
-    new_user_input = st.radio("Are you a new user?", ('Yes', 'No'), key="user_type")  # Add key to the radio widget
+    new_user_input = st.radio("Are you a new user?", ('Yes', 'No'), key="new_user_radio")
     new_user = 1 if new_user_input == 'Yes' else 0
 
     user_id = None  # Initialize user_id variable to None
@@ -152,9 +152,12 @@ def get_user_data():
         return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id
 
 
-
+'''
 def get_run_plan():
     st.header("Runner Training Plan - This Week's Plan")
+
+    for i in range(num_days_run_last_week):
+        st.subheader(f"Day {i+1}")   
 
     km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key="km_this_week")
     days_to_run = st.slider("How many days do you plan to run?", 0, 7, key="days_to_run")
@@ -181,3 +184,72 @@ def get_run_plan():
         medium_intensity_runs = 0
 
     return km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run == 'Yes'
+#
+# 
+#  Modify the keys for the widgets using a loop
+for i in range(num_days_run_last_week):
+    km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key=f"km_this_week{i}")
+    days_to_run = st.slider("How many days do you plan to run?", 0, 7, key=f"days_to_run{i}")
+    medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1, key=f"medium_intensity_runs{i}")
+    high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1,  key=f"high_intensity_runs{i}")
+    sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'),  key=f"sunday_long_run_radio{i}")
+'''
+
+
+
+
+
+def get_run_plan(num_days_run_last_week):
+    st.header("Runner Training Plan - This Week's Plan")
+    
+    km_this_week_list = []
+    days_to_run_list = []
+    medium_intensity_runs_list = []
+    high_intensity_runs_list = []
+    sunday_long_run_list = []
+    
+    for i in range(num_days_run_last_week):
+        st.subheader(f"Day {i+1}")   
+
+        km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key=f"km_this_week{i}")
+        days_to_run = st.slider("How many days do you plan to run?", 0, 7, key=f"days_to_run{i}")
+        medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1, key=f"medium_intensity_runs{i}")
+        high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1, key=f"high_intensity_runs{i}")
+        sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'), key=f"sunday_long_run_radio{i}")
+        
+        km_this_week_list.append(km_this_week)
+        days_to_run_list.append(days_to_run)
+        medium_intensity_runs_list.append(medium_intensity_runs)
+        high_intensity_runs_list.append(high_intensity_runs)
+        sunday_long_run_list.append(sunday_long_run)
+    
+    # Validate inputs
+    error_msg = ""
+    for i in range(num_days_run_last_week):
+        if (
+            km_this_week_list[i] is None
+            or days_to_run_list[i] is None
+            or medium_intensity_runs_list[i] is None
+            or high_intensity_runs_list[i] is None
+            or sunday_long_run_list[i] is None
+        ):
+            error_msg = "Please enter all information in fields."
+
+    if error_msg:
+        st.error(error_msg)
+        # Return None to indicate an error
+        return None, None, None, None, None
+
+    # Set high_intensity_runs to 0 if it is not provided by the user
+    high_intensity_runs_list = [0 if x is None else x for x in high_intensity_runs_list]
+    
+    # Set high_intensity_runs to 0 if it is not provided by the user
+    medium_intensity_runs_list = [0 if x is None else x for x in medium_intensity_runs_list]
+
+    return (
+        sum(km_this_week_list),
+        sum(days_to_run_list),
+        sum(medium_intensity_runs_list),
+        sum(high_intensity_runs_list),
+        any(sunday_long_run_list),
+    )

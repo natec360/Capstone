@@ -13,7 +13,7 @@ def main_app():
 
     if new_user is not None:
         # Get the training plan for the user
-        km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
+        km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan(num_days_run_last_week)
 
     else:
         st.error("Please fill in all required fields.")
@@ -38,7 +38,7 @@ def main_app():
     st.table(df)
 
     # Collect the runner training plan for this week using get_run_plan function
-    km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
+    #km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
 
     
     st.subheader("Run Plan Data")
