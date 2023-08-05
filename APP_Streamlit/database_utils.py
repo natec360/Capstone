@@ -136,7 +136,7 @@ def database_for_recommender(raw_df, new_user_df, gender, age_group, month, numb
         (raw_df['prev_month_weekly_km'] < int(weekly_target) + 5)
     ]
 
-    if filtered_df.size <= 15:
+    if filtered_df.empty or filtered_df.size <= 15:
         #print(gender, age_group, weekly_target)
         raise Exception("Insufficient data",filtered_df.size)
         
