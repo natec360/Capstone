@@ -160,7 +160,7 @@ def get_run_plan():
     days_to_run = st.slider("How many days do you plan to run?", 0, 7, key="days_to_run")
     medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1, key="medium_intensity_runs")
     high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1, key="high_intensity_runs")
-    sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'), key="sunday_long_run")
+    sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'), key="sunday_long_run_radio")
     
     # Validate inputs
     error_msg = ""
