@@ -16,8 +16,8 @@ from datetime import timedelta
 from itertools import combinations
 
 
-def generate_run_ratings():
-    global filtered_df,user_id, weekly_target, number_of_days
+def generate_run_ratings(filtered_df,user_id, weekly_target, number_of_days):
+    #global filtered_df,user_id, weekly_target, number_of_days
     long_run_multiple = 3
     
     """
@@ -92,8 +92,8 @@ def calculate_injury_likelihood(days_since_last_run, average_distance, average_p
     injury_likelihood = min(100, max(0, injury_score))  # Cap the score between 0 and 100
     return injury_likelihood
 
-def return_run_schedule():
-    global run_recommendations, number_of_days, weekly_target, medium_intensity_runs, high_intensity_runs, long_run
+def return_run_schedule(recommendations_df, number_of_days, weekly_target, medium_intensity_runs, high_intensity_runs, long_run):
+    #global recommendations_df, number_of_days, weekly_target, medium_intensity_runs, high_intensity_runs, long_run
     '''
     function to return optimized schedule of runs
     
@@ -109,7 +109,7 @@ def return_run_schedule():
     
     8) Returns schedule
     '''
-    df = run_recommendations
+    df = recommendations_df
     
     ## 1 ##
     # expand rating dataframe for runs with high ratings
@@ -164,7 +164,7 @@ def return_run_schedule():
                 df_runs.loc[i, 'run_distance'] += 1
                 current_sum += 1
             # If the current sum is greater than 'weekly_target', decrement the distance
-            elif current_sum > weekly_target:
+            elif current_sum > weekly_target and df_runs.loc[i, 'run_distance'] > 3:
                 df_runs.loc[i, 'run_distance'] -= 1
                 current_sum -= 1
             
@@ -229,7 +229,7 @@ def return_run_schedule():
     ## 7 ##
     
     # If long run multiply distance by 1.5
-    if long_run == 'yes':
+    if long_run == 'Yes':
         df_runs.loc[df_runs.index[-1], 'run_distance'] *= 1.5
     
     ## 8 ##

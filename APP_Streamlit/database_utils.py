@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 from datetime import timedelta
 import pyarrow.parquet as pq
+import streamlit as st
 
 def load_data():
     '''function to load in datasets to memory'''
@@ -107,26 +108,38 @@ def update_database():
     return update_user_db
 
 
-def database_for_recommender():
+def database_for_recommender(raw_df, new_user_df, gender, age_group, month, number_of_days, weekly_target):
     '''Filter raw data and add user data for the recommender system'''
-    global raw_df, new_user_df, gender, age_group, month, number_of_days, weekly_target
+    #global raw_df, new_user_df, gender, age_group, month, number_of_days, weekly_target
+    if gender == 'Male' or gender == 'Other':
+        gender = "M"
+    if gender == "Female":
+        gender == "F"
     
+    #st.table(raw_df['current_month'].sample(10))
+    
+    st.write(f"{gender}")
+    st.write(f"{age_group}")
+    st.write(f"{month}")
+    st.write(f"{number_of_days}")
+    st.write(f"{weekly_target}")
+    st.write(f"{raw_df.size}")
     
     # Define objects for Surprise. Must be in user, item, rating order
     filtered_df = raw_df.loc[
         (raw_df['gender'] == gender) &
-        (raw_df['age_group'] == age_group) &
-        (raw_df['current_month'] == month) &
-        (raw_df['prev_month_weekly_days_run'] > (number_of_days - 1)) & 
-        (raw_df['prev_month_weekly_days_run'] < (number_of_days + 1)) &
-        (raw_df['prev_month_weekly_km'] > weekly_target - 5) &
-        (raw_df['prev_month_weekly_km'] < weekly_target + 5)
+        (raw_df['age_bucket'] == age_group) &
+        (raw_df['current_month'] == int(month)) &
+        (raw_df['prev_month_weekly_days_run'] > (int(number_of_days) - 1)) & 
+        (raw_df['prev_month_weekly_days_run'] < (int(number_of_days) + 1)) &
+        (raw_df['prev_month_weekly_km'] > int(weekly_target) - 5) &
+        (raw_df['prev_month_weekly_km'] < int(weekly_target) + 5)
     ]
 
     if filtered_df.size <= 15:
-        print("Insufficient data for", gender, age_group, target_kms)
-        BREAK
-
+        #print(gender, age_group, weekly_target)
+        raise Exception("Insufficient data",filtered_df.size)
+        
     # Append new user data
     filtered_df = pd.concat([filtered_df, new_user_df])
     return filtered_df

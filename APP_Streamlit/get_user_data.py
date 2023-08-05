@@ -35,7 +35,7 @@ def format_pace_string(pace_timedelta):
 
 def get_user_data():
     st.title("Runner Training Plan - User Input Form")
-    global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
+    #global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
     #new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
    
     # User Type
@@ -84,6 +84,10 @@ def get_user_data():
             age_group = "55 +"
 
     gender = st.selectbox("What is your gender?", ('Male', 'Female', 'Other'))
+    if gender == 'Male' or gender == 'Other':
+        gender = "M"
+    if gender == "Female":
+        gender == "F"
     distance_last_week = st.number_input("Distance ran last week (in kilometers):", min_value=0.0, step=0.1)
     pace_last_week_input = st.text_input("Average pace last week in HH:MM:SS:", value='00:00:00')
 
@@ -152,12 +156,9 @@ def get_user_data():
         return new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id
 
 
-'''
+
 def get_run_plan():
     st.header("Runner Training Plan - This Week's Plan")
-
-    for i in range(num_days_run_last_week):
-        st.subheader(f"Day {i+1}")   
 
     km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key="km_this_week")
     days_to_run = st.slider("How many days do you plan to run?", 0, 7, key="days_to_run")
@@ -184,21 +185,9 @@ def get_run_plan():
         medium_intensity_runs = 0
 
     return km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run == 'Yes'
-#
-# 
-#  Modify the keys for the widgets using a loop
-for i in range(num_days_run_last_week):
-    km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key=f"km_this_week{i}")
-    days_to_run = st.slider("How many days do you plan to run?", 0, 7, key=f"days_to_run{i}")
-    medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1, key=f"medium_intensity_runs{i}")
-    high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1,  key=f"high_intensity_runs{i}")
-    sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'),  key=f"sunday_long_run_radio{i}")
+
+
 '''
-
-
-
-
-
 def get_run_plan(num_days_run_last_week):
     st.header("Runner Training Plan - This Week's Plan")
     
@@ -208,7 +197,6 @@ def get_run_plan(num_days_run_last_week):
     high_intensity_runs_list = []
     sunday_long_run_list = []
     
-    for i in range(num_days_run_last_week):
         st.subheader(f"Day {i+1}")   
 
         km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key=f"km_this_week{i}")
@@ -253,3 +241,4 @@ def get_run_plan(num_days_run_last_week):
         sum(high_intensity_runs_list),
         any(sunday_long_run_list),
     )
+'''
