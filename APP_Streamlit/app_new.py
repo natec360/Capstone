@@ -11,9 +11,11 @@ def main_app():
     # Collect user information using get_user_data function
     new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, df, user_id = get_user_data()
 
+    if new_user is not None:
+        # Get the training plan for the user
+        km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
 
-    # If any of the required user inputs are missing, display an error message
-    if new_user is None:
+    else:
         st.error("Please fill in all required fields.")
         return
 
@@ -38,6 +40,7 @@ def main_app():
     # Collect the runner training plan for this week using get_run_plan function
     km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
 
+    
     st.subheader("Run Plan Data")
     run_plan_data = {
         "User ID": user_id,
@@ -55,11 +58,7 @@ def main_app():
         st.error("Please fill in all required fields.")
         return
 
-  # Call the main() function from main.py
-  #  if new_user is not None and user_id is not None and gender is not None and age_group is not None and month is not None and updated_user_df is not None and weekly_target is not None and days_to_run is not None and medium_intensity_runs is not None and high_intensity_runs is not None and long_run is not None:
-   #     run_schedule = generate_run_schedule_for_user(new_user, user_id, gender, age_group, month, updated_user_df, weekly_target, days_to_run, medium_intensity_runs, high_intensity_runs, long_run)
-
-    # Call the main function to generate the run schedule based on user inputs
+     # Call the main function to generate the run schedule based on user inputs
     if st.button("Generate Run"):
         run_schedule = main(new_user, user_id, gender, age_group, month, df, km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run)
 

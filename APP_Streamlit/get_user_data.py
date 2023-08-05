@@ -36,11 +36,11 @@ def format_pace_string(pace_timedelta):
 def get_user_data():
     st.title("Runner Training Plan - User Input Form")
     global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
-    
+    #new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
+   
     # User Type
-    user_type = st.radio("Are you a new user?", ('Yes', 'No'))
-    #new_user = True if user_type == 'Yes' else False
-    new_user = 1 if user_type == 'Yes' else 0
+    new_user_input = st.radio("Are you a new user?", ('Yes', 'No'), key="user_type")  # Add key to the radio widget
+    new_user = 1 if new_user_input == 'Yes' else 0
 
     user_id = None  # Initialize user_id variable to None
     missing_fields = []
@@ -58,7 +58,7 @@ def get_user_data():
         st.header("Returning User Information")
         
         user_id = st.text_input("Please enter your user ID:")
-
+        '''
         # Additional data collection for returning users can be added here
         if user_id:
             num_days_run_last_week = st.slider("Number of days run in last week:", 0, 7)
@@ -69,7 +69,7 @@ def get_user_data():
                 missing_fields.append("Number of days ran in last week")
             if not days_since_last_run:
                 missing_fields.append("Days since last run")
-
+        '''
 
 
     # Age Group
@@ -156,12 +156,12 @@ def get_user_data():
 def get_run_plan():
     st.header("Runner Training Plan - This Week's Plan")
 
-    km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1)
-    days_to_run = st.slider("How many days do you plan to run?", 0, 7)
-    medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1)
-    high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1)
-    sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'))
-
+    km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key="km_this_week")
+    days_to_run = st.slider("How many days do you plan to run?", 0, 7, key="days_to_run")
+    medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1, key="medium_intensity_runs")
+    high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1, key="high_intensity_runs")
+    sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'), key="sunday_long_run")
+    
     # Validate inputs
     error_msg = ""
     if km_this_week is None or days_to_run is None or medium_intensity_runs is None or high_intensity_runs is None or sunday_long_run is None:

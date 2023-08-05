@@ -5,7 +5,7 @@ from get_user_data import get_user_data, get_run_plan
 import database_utils as dbf
 
 
-def main():
+def main(new_user, user_id, gender, age_group, month, updated_user_df, km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run):
     # Collect user inputs (note only works for new users for now)
     #new_user, user_id, gender, age_group, month, updated_user_df = user.get_user_data()
     new_user, user_id, gender, age_group, month, updated_user_df = get_user_data()
