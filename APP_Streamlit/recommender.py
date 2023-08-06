@@ -235,7 +235,9 @@ def return_run_schedule(recommendations_df, number_of_days, weekly_target, mediu
     ## 8 ##
     #return schedule
     df_runs = df_runs[['run_distance', 'pace']].rename(columns={'run_distance': 'Run Distance', 'pace': 'Pace'})
-    return df_runs
+    # Remove the index and return only the 'Run Distance' and 'Pace' columns
+    return df_runs.to_string(index=False)
+    #return df_runs
    
     
     #return df_runs[['run_distance','pace']]
