@@ -64,6 +64,11 @@ def main_app():
         st.error("Please fill in all required fields.")
         return
 
+    #injury warning
+    if km_this_week >= distance_last_week * 1.2: 
+        st.error("Target distance for this week may cause injury. Suggest reducing target")
+        return
+    
     # Display a progress bar while loading the big data file
     progress_bar = st.progress(0)
     raw_df = None
@@ -83,11 +88,6 @@ def main_app():
         st.success("Loading complete!")
 
 
-    #load in recommender dataset
-    #raw_df = load_data()
-    
-    #st.table(raw_df['current_month'].sample(10))
-
      # Call the main function to generate the run schedule based on user inputs
     if st.button("Generate Run Plan"):    
     
@@ -106,6 +106,7 @@ def main_app():
     
         run_schedule = return_run_schedule(recommendations_df, number_of_days, km_this_week, medium_intensity_runs, high_intensity_runs, sunday_long_run)
 
+        
         # Display the generated run schedule to the user
         if run_schedule is not None:
             st.header("Generated Run Schedule")
