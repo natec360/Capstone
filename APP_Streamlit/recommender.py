@@ -233,8 +233,12 @@ def return_run_schedule(recommendations_df, number_of_days, weekly_target, mediu
         df_runs.loc[df_runs.index[-1], 'run_distance'] *= 1.5
     
     ## 8 ##
-    #return schedule 
-    return df_runs[['run_distance','pace']]
+    #return schedule
+    df_runs = df_runs[['run_distance', 'pace']].rename(columns={'run_distance': 'Run Distance', 'pace': 'Pace'})
+    return df_runs
+   
+    
+    #return df_runs[['run_distance','pace']]
 
     
 #EOF
