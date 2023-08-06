@@ -34,9 +34,9 @@ def format_pace_string(pace_timedelta):
 
 
 def get_user_data():
-    st.title("Runner Training Plan - User Input Form")
+    st.title("PacePerfect Training Plan") 
+    st.header("Runner Input Form")
     #global new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
-    #new_user, age_group, gender, distance_last_week, pace_last_week, num_days_run_last_week, days_since_last_run, month, user_id
    
     # User Type
     new_user_input = st.radio("Are you a new user?", ('Yes', 'No'), key="new_user_radio")
@@ -47,7 +47,7 @@ def get_user_data():
 
     if new_user:
         # New User Info
-        st.header("New User Information")
+        st.subheader("New User Information")
         
         # Generate a random user ID for new users
         user_id = generate_random_user_id()
@@ -55,7 +55,7 @@ def get_user_data():
 
     else:
         # Returning User Info
-        st.header("Returning User Information")
+        st.subheader("Returning User Information")
         
         user_id = st.text_input("Please enter your user ID:")
         '''
@@ -88,13 +88,12 @@ def get_user_data():
         gender = "M"
     if gender == "Female":
         gender == "F"
-    distance_last_week = st.number_input("Distance ran last week (in kilometers):", min_value=0.0, step=0.1)
-    pace_last_week_input = st.text_input("Average pace last week in HH:MM:SS:", value='00:00:00')
+    distance_last_week = st.number_input("Total distance ran last week (in kilometers):", min_value=0.0, step=0.1)
+    pace_last_week_input = st.text_input("Average pace last week in HH:MM:SS", value='00:00:00')
 
     try:
         # Convert the input pace to a timedelta object
         #pace_hours, pace_minutes, pace_seconds = map(int, pace_last_week_input.split(':'))
-        #pace_last_week = datetime.strptime(pace_value, '%H:%M:%S')
         pace_last_week = datetime.strptime(pace_last_week_input, '%H:%M:%S')
     except ValueError:
         pace_last_week = None  # Set to default value if input is invalid
@@ -103,19 +102,19 @@ def get_user_data():
     str_pace_last_week = str(pace_last_week.strftime("%H:%M:%S"))
 
 
-    num_days_run_last_week = st.slider("Number of days ran last week:", 0, 7)
+    num_days_run_last_week = st.slider("Total number of days ran last week:", 0, 7)
     days_since_last_run = st.slider("Days since last run:", 0, 30)
 
 
     # Information on Each Run
 
-    st.header("Information on Each Run")
+    st.subheader("Information on Each Run")
     data = []
     for i in range(num_days_run_last_week):
         st.subheader(f"Day {i+1}")
-        date = st.date_input("Enter a date you ran:", key=f"date_{i}")
-        distance_value = st.number_input("How many kilometers did you run?", min_value=0.0, step=0.1, key=f"distance_{i}")
-        pace_value = st.text_input("What was the total run time?", key=f"pace_{i}", value="00:00:00")
+        date = st.date_input("Date of Run:", key=f"date_{i}")
+        distance_value = st.number_input("How many total kilometers did you run?", min_value=0.0, step=0.1, key=f"distance_{i}")
+        pace_value = st.text_input("Total run time in HH:MM:SS", key=f"pace_{i}", value="00:00:00")
 
         try:
             # Convert the input pace to a timedelta object
@@ -141,10 +140,10 @@ def get_user_data():
             error_msg += "Please fill in all new user information fields.\n"
     else:
         if not user_id:
-            error_msg += "Please enter your user ID for returning users.\n"
+            error_msg += "Please enter your user ID as a returning user.\n"
 
     if missing_fields:
-        error_msg += f"Please fill in the following fields for returning users: {', '.join(missing_fields)}.\n"
+        error_msg += f"Form not complete: Please fill in the following fields for returning users: {', '.join(missing_fields)}.\n"
 
     if error_msg:
         st.error("Errors found:\n" + error_msg)
@@ -158,7 +157,7 @@ def get_user_data():
 
 
 def get_run_plan():
-    st.header("Runner Training Plan - This Week's Plan")
+    st.subheader("Runner Training Plan - This Week's Plan")
 
     km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key="km_this_week")
     days_to_run = st.slider("How many days do you plan to run?", 0, 7, key="days_to_run")
@@ -169,7 +168,7 @@ def get_run_plan():
     # Validate inputs
     error_msg = ""
     if km_this_week is None or days_to_run is None or medium_intensity_runs is None or high_intensity_runs is None or sunday_long_run is None:
-        error_msg = "Please enter all information in fields."
+        error_msg = "Please enter information in required fields for runs for this week."
 
     if error_msg:
         st.error(error_msg)
@@ -186,59 +185,3 @@ def get_run_plan():
 
     return km_this_week, days_to_run, medium_intensity_runs, high_intensity_runs, sunday_long_run == 'Yes'
 
-
-'''
-def get_run_plan(num_days_run_last_week):
-    st.header("Runner Training Plan - This Week's Plan")
-    
-    km_this_week_list = []
-    days_to_run_list = []
-    medium_intensity_runs_list = []
-    high_intensity_runs_list = []
-    sunday_long_run_list = []
-    
-        st.subheader(f"Day {i+1}")   
-
-        km_this_week = st.number_input("How many km do you plan to run this week?", min_value=0, step=1, key=f"km_this_week{i}")
-        days_to_run = st.slider("How many days do you plan to run?", 0, 7, key=f"days_to_run{i}")
-        medium_intensity_runs = st.number_input("How many medium intensity runs would you like?", min_value=0, step=1, key=f"medium_intensity_runs{i}")
-        high_intensity_runs = st.number_input("How many high intensity runs would you like?", min_value=0, step=1, key=f"high_intensity_runs{i}")
-        sunday_long_run = st.radio("Would you like a Sunday long run?", ('Yes', 'No'), key=f"sunday_long_run_radio{i}")
-        
-        km_this_week_list.append(km_this_week)
-        days_to_run_list.append(days_to_run)
-        medium_intensity_runs_list.append(medium_intensity_runs)
-        high_intensity_runs_list.append(high_intensity_runs)
-        sunday_long_run_list.append(sunday_long_run)
-    
-    # Validate inputs
-    error_msg = ""
-    for i in range(num_days_run_last_week):
-        if (
-            km_this_week_list[i] is None
-            or days_to_run_list[i] is None
-            or medium_intensity_runs_list[i] is None
-            or high_intensity_runs_list[i] is None
-            or sunday_long_run_list[i] is None
-        ):
-            error_msg = "Please enter all information in fields."
-
-    if error_msg:
-        st.error(error_msg)
-        # Return None to indicate an error
-        return None, None, None, None, None
-
-    # Set high_intensity_runs to 0 if it is not provided by the user
-    high_intensity_runs_list = [0 if x is None else x for x in high_intensity_runs_list]
-    
-    # Set high_intensity_runs to 0 if it is not provided by the user
-    medium_intensity_runs_list = [0 if x is None else x for x in medium_intensity_runs_list]
-
-    return (
-        sum(km_this_week_list),
-        sum(days_to_run_list),
-        sum(medium_intensity_runs_list),
-        sum(high_intensity_runs_list),
-        any(sunday_long_run_list),
-    )
-'''

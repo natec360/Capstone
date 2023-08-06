@@ -34,34 +34,13 @@ def main_app():
         km_this_week, number_of_days, medium_intensity_runs, high_intensity_runs, sunday_long_run = get_run_plan()
 
     else:
-        st.error("Please fill in all required fields.")
+        st.error("Please fill in all required fields to continue.")
         return
 
-    # Display user data in a table
-    st.subheader("User Data")
-    user_data = {
-        "New User": "Yes" if new_user else "No",
-        "User ID": user_id,
-        "Distance Ran Last Week (in km)": distance_last_week,
-        "Days Since Last Run": days_since_last_run
-    }
-    st.table(user_data)
-
-    
-    st.subheader("Run Plan Data")
-    run_plan_data = {
-        "User ID": user_id,
-        "Km this week": km_this_week,
-        "Medium intensity runs": medium_intensity_runs,
-        "High intensity runs": high_intensity_runs,
-        "Sunday long run": "Yes" if sunday_long_run else "No"
-    }
-    st.table(run_plan_data)
-
-
+     
     # If any of the required run plan inputs are missing, display an error message
     if km_this_week is None:
-        st.error("Please fill in all required fields.")
+        st.error("Please fill in all required fields to continue.")
         return
 
     #injury warning
@@ -85,7 +64,7 @@ def main_app():
         loading_complete = True
 
     if loading_complete:
-        st.success("Loading complete!")
+        st.success("Loading complete! Continue to generate plan")
 
 
      # Call the main function to generate the run schedule based on user inputs
@@ -109,10 +88,10 @@ def main_app():
         
         # Display the generated run schedule to the user
         if run_schedule is not None:
-            st.header("Generated Run Schedule")
+            st.header("Your PacePerfect Run Schedule")
             st.table(run_schedule)
         else:
-            st.write("Error: Unable to generate the run schedule.")
+            st.write("Error: Unable to generate the run schedule. Please make sure all fields are correct.")
 
 if __name__ == "__main__":
     main_page()
