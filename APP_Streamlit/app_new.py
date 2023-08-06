@@ -1,4 +1,5 @@
 import streamlit as st
+import surprise
 from database_utils import load_data, update_database, database_for_recommender
 from recommender import generate_run_ratings, return_run_schedule
 from get_user_data import get_user_data, get_run_plan
